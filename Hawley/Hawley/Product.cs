@@ -2,6 +2,12 @@
 
 namespace Hawley
 {
+	class ProductAndVariant
+	{
+		public Product Product;
+		public ProductVariant Variant;
+	}
+
 	// returned from /Catalog/Products...
 	class Product
 	{
