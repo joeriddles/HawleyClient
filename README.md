@@ -1,2 +1,2 @@
 # HawleyClient
-A HawleyUSA API .NET Client
+Work in progress.
