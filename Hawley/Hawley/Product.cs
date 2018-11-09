@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using static Hawley.Utils;
 
 namespace Hawley
 {
@@ -21,6 +23,21 @@ namespace Hawley
 		public string DateLastModified { get; set; }
 		public List<string> VariantIds { get; set; }
 		public List<string> CategoryIds { get; set; }
+		public List<string> CategoryNames { get; set; } = new List<string>();
+
+		public override string ToString()
+		{
+			return $@"Product ID:	{ProductId}
+Product No:	{ProductNo}
+Name:	{Name}
+Description:	{Description}
+Brand ID:	{BrandId}
+DateCreated:	{DateCreated}
+DateLastModified:	{DateLastModified}
+Variants IDs: {Join(VariantIds)}
+Category IDs: {Join(CategoryIds)}
+";
+		}
 	}
 
 	// returned from /Catalog/Products/Variants...
@@ -46,6 +63,7 @@ namespace Hawley
 		public List<VariantAttribute> Attributes { get; set; }
 		public List<VariantPrice> Prices { get; set; }
 		public List<VariantImage> Images { get; set; }
+		public List<VariantInventories> Inventories { get; set; } = new List<VariantInventories>();
 
 		public class VariantAttribute
 		{
@@ -53,10 +71,26 @@ namespace Hawley
 			public string ProductId { get; set; }
 			public List<VariantAttributeInternal> Attributes { get; set; }
 
+			public override string ToString()
+			{
+				return $@"Variant ID:	{VariantId}
+Product ID:	{ProductId}
+Attributes:
+{Join(Attributes)}
+";
+			}
+
 			public class VariantAttributeInternal
 			{
 				public string Name { get; set; }
 				public string Value { get; set; }
+
+				public override string ToString()
+				{
+					return $@"Name: {Name}
+Value: {Value}
+";
+				}
 			}
 		}
 
@@ -66,6 +100,15 @@ namespace Hawley
 			public string PriceTypeId { get; set; }
 			public string PriceTypeDesc { get; set; }
 			public string QtyBreak { get; set; }
+
+			public override string ToString()
+			{
+				return $@"Price:	{Price}
+Price Type ID:	{PriceTypeId},
+Price Type Desc:	{PriceTypeDesc}
+Qty Break:	{QtyBreak}
+";
+			}
 		}
 
 		public class VariantImage
@@ -73,6 +116,69 @@ namespace Hawley
 			public string FormatId { get; set; }
 			public string Format { get; set; }
 			public string Url { get; set; }
+
+			public override string ToString()
+			{
+				return $@"Format ID:	{FormatId}
+Format:	{Format}
+URL: {Url}
+";
+			}
+		}
+
+	}
+
+	public class VariantInventories
+	{
+		public string VariantId { get; set; }
+		public string VariantNo { get; set; }
+		public string ProductNo { get; set; }
+		public bool AddedToWatchList { get; set; }
+		public string StatusId { get; set; }
+		public string StatusDescription { get; set; }
+		public List<WarehouseQuantity> WarehousesQuantities { get; set; }
+		public string TotalQuantityAvailable { get; set; }
+
+		public override string ToString()
+		{
+			return $@"Variant ID:	{VariantId}
+Variant No:	{VariantNo}
+Product No:	{ProductNo}
+Added To Watch List:	{AddedToWatchList}
+Status ID:	{StatusId}
+Status Description:	{StatusDescription}
+Warehouse Quantity:	{Join(WarehousesQuantities)}
+Total Quantity Available:	{TotalQuantityAvailable}
+";
+		}
+
+		public class WarehouseQuantity
+		{
+			public string Id { get; set; }
+			public string Name { get; set; }
+			public string QtyAvailable { get; set; }
+
+			public override string ToString()
+			{
+				return $@"ID:	{Id}
+Name:	{Name}
+Qty Available:	{QtyAvailable}
+";
+			}
+		}
+	}
+
+	public class Categories
+	{
+		public string CategoryId { get; set; }
+		public string CategoryName { get; set; }
+		public List<SubCategory> SubCategories { get; set; }
+
+		public class SubCategory
+		{
+			public string CategoryId { get; set; }
+			public string CategoryName { get; set; }
+			public List<SubCategory> SubCategories { get; set; }
 		}
 	}
 }

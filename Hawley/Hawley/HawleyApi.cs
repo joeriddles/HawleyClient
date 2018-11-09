@@ -16,15 +16,23 @@ namespace Hawley
 
 		static void Main()
 		{
-			var productVariants = GetProductVariants();
+			var categories = GetCategories();
+			var flatCategories = FlattenCategories(categories);
 
+			var productVariants = GetProductVariants();
 			var variantIds = productVariants.Select(pv => pv.VariantId).ToList();
+			var inventories = GetVariantInventoriesFromVariantIds(variantIds);
+			productVariants = CombineVariantsAndInventories(productVariants, inventories);
+
 			var products = GetProductsFromVariantsIds(variantIds);
+			CombineProductAndCategoryNames(ref products, flatCategories);
 
 			List<ProductAndVariant> productsAndVariants = CombineProductsAndVariants(products, productVariants);
-			WriteProductVariantsToConsole(productsAndVariants);
+			 WriteProductVariantsToConsole(productsAndVariants);
 
 			WriteProductVariantsToCsv(productVariants);
+
+			Console.ReadLine();
 		}
 
 		private static List<ProductAndVariant> CombineProductsAndVariants(List<Product> products,
@@ -35,6 +43,24 @@ namespace Hawley
 				variant => variant.ProductId,
 				product => product.ProductId,
 				(variant, product) => new ProductAndVariant { Product = product, Variant = variant }).ToList();
+		}
+
+		private static List<ProductVariant> CombineVariantsAndInventories(List<ProductVariant> variants,
+			List<VariantInventories> inventories)
+		{
+			var combined = variants.Join(
+				inventories,
+				variant => variant.VariantId,
+				inventory => inventory.VariantId,
+				(variant, inventory) => new { variant, inventory });
+
+			var newVariants = new List<ProductVariant>();
+			foreach (var c in combined)
+			{
+				c.variant.Inventories.Add(c.inventory);
+				newVariants.Add(c.variant);
+			}
+			return newVariants;
 		}
 
 		private static List<ProductVariant> GetProductVariants()
@@ -61,14 +87,61 @@ namespace Hawley
 
 			request.AddHeader("Accept", "application/json");
 			request.AddHeader("Authorization", $"ApiKey {apikey}");
-			request.AddParameter("pageStartIndex", "1");
-			request.AddParameter("pageSize", "5");
+			request.AddParameter("variantIds", string.Join(",", variantIds));
 
 			IRestResponse response = client.Execute(request);
 
 			var jArray = JsonConvert.DeserializeObject<JArray>(response.Content);
 			var products = jArray.ToObject<List<Product>>();
 			return products;
+		}
+
+		private static List<VariantInventories> GetVariantInventoriesFromVariantIds(List<string> variantIds)
+		{
+			var client = new RestClient(url);
+			var request = new RestRequest("Catalog/Products/Variants/Inventories", Method.GET);
+
+			request.AddHeader("Accept", "application/json");
+			request.AddHeader("Authorization", $"ApiKey {apikey}");
+			request.AddParameter("variantIds", string.Join(",", variantIds));
+
+			IRestResponse response = client.Execute(request);
+
+			var jArray = JsonConvert.DeserializeObject<JArray>(response.Content);
+			var inventories = jArray.ToObject<List<VariantInventories>>();
+			return inventories;
+		}
+
+		private static List<Categories> GetCategories()
+		{
+			var client = new RestClient(url);
+			var request = new RestRequest("Catalog/Categories", Method.GET);
+
+			request.AddHeader("Accept", "application/json");
+			request.AddHeader("Authorization", $"ApiKey {apikey}");
+
+			IRestResponse response = client.Execute(request);
+
+			var jArray = JsonConvert.DeserializeObject<JArray>(response.Content);
+			var categories = jArray.ToObject<List<Categories>>();
+			return categories;
+		}
+
+		private static Dictionary<string, string> FlattenCategories(List<Categories> categories)
+		{
+			Dictionary<string, string> allCategories = new Dictionary<string, string>();
+			categories.ForEach(c => allCategories.Add(c.CategoryId, c.CategoryName));
+			categories.ForEach(c => c.SubCategories.ForEach(sc => allCategories.Add(sc.CategoryId, sc.CategoryName)));
+			return allCategories;
+		}
+
+		private static void CombineProductAndCategoryNames(ref List<Product> products,
+			Dictionary<string, string> categories)
+		{
+			foreach (var product in products)
+			{
+				product.CategoryIds.ForEach(ci => product.CategoryNames.Add(categories[ci]));
+			}
 		}
 
 		private static void WriteProductVariantsToCsv(List<ProductVariant> productVariants)
