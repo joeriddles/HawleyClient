@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using static Hawley.Utils;
 
 namespace Hawley
 {
-	class ProductAndVariant
+	public class ProductAndVariant
 	{
 		public Product Product;
 		public ProductVariant Variant;
 	}
 
 	// returned from /Catalog/Products...
-	class Product
+	public class Product
 	{
 		public string ProductId { get; set; }
 		public string ProductNo { get; set; }
@@ -41,7 +41,7 @@ Category IDs: {Join(CategoryIds)}
 	}
 
 	// returned from /Catalog/Products/Variants...
-	class ProductVariant
+	public class ProductVariant
 	{
 		public string VariantId { get; set; }
 		public string VariantNo { get; set; }
@@ -50,20 +50,28 @@ Category IDs: {Join(CategoryIds)}
 		public string Description { get; set; }
 		public string StatusId { get; set; }
 		public string StatusDesc { get; set; }
+		[JsonProperty(PropertyName = "UPC")]
 		public string Upc { get; set; }
+		[JsonProperty(PropertyName = "EAN")]
 		public string Ean { get; set; }
 		public string Config { get; set; }
 		public string Size { get; set; }
 		public string Color { get; set; }
 		public string ProductDimensionGroup { get; set; }
 		public string MfgPartNumber { get; set; }
-		public bool GroundOnly { get; set; }
+		[JsonProperty(PropertyName = "MFGPartNumber")]
+		public string GroundOnly { get; set; }
 		public string DateCreated { get; set; }
 		public string DateLastModified { get; set; }
 		public List<VariantAttribute> Attributes { get; set; }
 		public List<VariantPrice> Prices { get; set; }
 		public List<VariantImage> Images { get; set; }
 		public List<VariantInventories> Inventories { get; set; } = new List<VariantInventories>();
+
+		public override string ToString()
+		{
+			return VariantId;
+		}
 
 		public class VariantAttribute
 		{

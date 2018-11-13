@@ -1,34 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Cache;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Hawley
 {
-	class HawleyClient
+	public class HawleyClient
 	{
-		private static HttpClient client = new HttpClient {BaseAddress = new Uri("https://api.hawleyusa.com/v2.0/")};
-		private static readonly string ApiKey = "";
-
-		private static void ConfigClient()
+		public static void RunHawleyClient()
 		{
-			client.DefaultRequestHeaders.Accept.Clear();
-			client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-			client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {ApiKey}");
+			HttpClientHandler handler = new HttpClientHandler()
+			{
+				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+			};
+
+			using (var client = new HttpClient(handler))
+			{
+				client.BaseAddress = new Uri("https://api.hawleyusa.com/");
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("ApiKey", "KEY");
+				client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+				var products = GetAllProducts(client);
+
+				HttpResponseMessage response = client.GetAsync("v2.0/Catalog/Products/Variants?pageStartIndex=1&pageSize=1000").Result;
+				if (response.IsSuccessStatusCode)
+				{
+					List<ProductVariant> variants = new List<ProductVariant>();
+					var responseString = response.Content.ReadAsStringAsync().Result;
+					variants.AddRange(JsonConvert.DeserializeObject<List<ProductVariant>>(responseString));
+
+					KeyValuePair<string, IEnumerable<string>> xPagination = response.Headers.Single(h => h.Key.Equals("X-Pagination"));
+					Console.WriteLine(xPagination.Value.Single());
+					Dictionary<string, string> responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(xPagination.Value.Single());
+					string nextPage = responsePaginationDictionary["NextPageLink"].Split(new string[] { client.BaseAddress.ToString() }, StringSplitOptions.RemoveEmptyEntries).Single();
+
+					while (response.IsSuccessStatusCode && xPagination.Value != null)
+					{
+						response = client.GetAsync(nextPage).Result;
+						responseString = response.Content.ReadAsStringAsync().Result;
+
+						xPagination = response.Headers.Single(h => h.Key.Equals("X-Pagination"));
+						Console.WriteLine(xPagination.Value.Single());
+						responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(xPagination.Value.Single());
+						nextPage = responsePaginationDictionary["NextPageLink"].Split(new string[] { client.BaseAddress.ToString() }, StringSplitOptions.RemoveEmptyEntries).Single();
+
+						var deserializeJson = JsonConvert.DeserializeObject<List<ProductVariant>>(responseString);
+						variants.AddRange(deserializeJson);
+					}
+
+				}
+				else
+				{
+					//NOK
+				}
+			}
 		}
 
-		public async Task<List<Product>> GetProducts()
+		public static List<Product> GetAllProducts(HttpClient client)
 		{
-			ConfigClient();
-			HttpResponseMessage response = await client.GetAsync("Catalog/Products?pageStartIndex=1&pageSize=5");
-
-			var jArray = JsonConvert.DeserializeObject<JArray>(response.Content.ToString());
-			var products = jArray.ToObject<List<Product>>();
+			List<Product> products = new List<Product>();
+			var response = client.GetAsync("v2.0/Catalog/Products?pageStartIndex=1&pageSize=10").Result;
+			var responseString = response.Content.ReadAsStringAsync().Result;
+			products.AddRange(JsonConvert.DeserializeObject<List<Product>>(responseString));
 			return products;
 		}
 	}

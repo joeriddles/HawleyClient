@@ -12,14 +12,16 @@ namespace Hawley
 	class HawleyApi
 	{
 		private static readonly string url = "https://api.hawleyusa.com/v2.0/";
-		private static readonly string apikey = "KEYGOESHERE";
+		private static readonly string apikey = "KEY";
 
 		static void Main()
 		{
+			HawleyClient.RunHawleyClient();
+
 			var categories = GetCategories();
 			var flatCategories = FlattenCategories(categories);
 
-			var productVariants = GetProductVariants();
+			var productVariants = GetProductVariants(100);
 			var variantIds = productVariants.Select(pv => pv.VariantId).ToList();
 			var inventories = GetVariantInventoriesFromVariantIds(variantIds);
 			productVariants = CombineVariantsAndInventories(productVariants, inventories);
@@ -28,8 +30,8 @@ namespace Hawley
 			CombineProductAndCategoryNames(ref products, flatCategories);
 
 			List<ProductAndVariant> productsAndVariants = CombineProductsAndVariants(products, productVariants);
-			 WriteProductVariantsToConsole(productsAndVariants);
 
+			WriteProductVariantsToConsole(productsAndVariants);
 			WriteProductVariantsToCsv(productVariants);
 
 			Console.ReadLine();
@@ -63,20 +65,47 @@ namespace Hawley
 			return newVariants;
 		}
 
-		private static List<ProductVariant> GetProductVariants()
+		private static List<ProductVariant> GetProductVariants(int numberProductVariants)
 		{
 			var client = new RestClient(url);
-			var request = new RestRequest("Catalog/Products/Variants", Method.GET);
 
+			List<ProductVariant> productVariants = new List<ProductVariant>();
+
+			var request = new RestRequest("Catalog/Products/Variants", Method.GET);
 			request.AddHeader("Accept", "application/json");
 			request.AddHeader("Authorization", $"ApiKey {apikey}");
-			request.AddParameter("pageStartIndex", "1");
-			request.AddParameter("pageSize", "5");
+			request.AddParameter("pageStartIndex", 1);
+
+			/*
+			if (numberProductVariants > 100)
+				request.AddParameter("pageSize", 1000);
+			else
+				request.AddParameter("pageSize", numberProductVariants);
+			*/
+			request.AddParameter("pageSize", 5000);
 
 			IRestResponse response = client.Execute(request);
-
 			var jArray = JsonConvert.DeserializeObject <JArray>(response.Content);
-			var productVariants = jArray.ToObject<List<ProductVariant>>();
+			productVariants.AddRange(jArray.ToObject<IEnumerable<ProductVariant>>());
+
+			Parameter responseXPagination = response.Headers.SingleOrDefault(h => h.Name.Equals("X-Pagination"));
+			while (responseXPagination?.Value != null)
+			{
+				Dictionary<string, string> responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseXPagination.Value.ToString());
+				string nextPage = responsePaginationDictionary["NextPageLink"].Split(new string[] {url}, StringSplitOptions.RemoveEmptyEntries).Single();
+				Console.WriteLine(nextPage);
+
+				request = new RestRequest(nextPage);
+				request.AddHeader("Accept", "application/json");
+				request.AddHeader("Authorization", $"ApiKey {apikey}");
+				response = client.Execute(request);
+
+				jArray = JsonConvert.DeserializeObject<JArray>(response.Content);
+				productVariants.AddRange(jArray.ToObject<IEnumerable<ProductVariant>>());
+
+				responseXPagination = response.Headers.SingleOrDefault(h => h.Name.Equals("X-Pagination"));
+			}
+
 			return productVariants;
 		}
 
