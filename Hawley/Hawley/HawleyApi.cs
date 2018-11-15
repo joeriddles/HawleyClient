@@ -16,18 +16,19 @@ namespace Hawley
 
 		static void Main()
 		{
-			HawleyClient.RunHawleyClient();
+			var client = new HawleyClient();
 
 			var categories = GetCategories();
 			var flatCategories = FlattenCategories(categories);
 
-			var productVariants = GetProductVariants(100);
+			var products = client.GetAllProducts();
+			CombineProductAndCategoryNames(ref products, flatCategories);
+
+			var productVariants = client.GetAllVariants();
 			var variantIds = productVariants.Select(pv => pv.VariantId).ToList();
-			var inventories = GetVariantInventoriesFromVariantIds(variantIds);
+			var inventories = client.GetVariantInventoriesFromVariantIds(variantIds);
 			productVariants = CombineVariantsAndInventories(productVariants, inventories);
 
-			var products = GetProductsFromVariantsIds(variantIds);
-			CombineProductAndCategoryNames(ref products, flatCategories);
 
 			List<ProductAndVariant> productsAndVariants = CombineProductsAndVariants(products, productVariants);
 
@@ -169,7 +170,13 @@ namespace Hawley
 		{
 			foreach (var product in products)
 			{
-				product.CategoryIds.ForEach(ci => product.CategoryNames.Add(categories[ci]));
+				foreach (var categoryId in product.CategoryIds)
+				{
+					if (categories.ContainsKey(categoryId))
+						product.CategoryNames.Add(categories[categoryId]);
+					else
+						product.CategoryNames.Add("");
+				}	
 			}
 		}
 
