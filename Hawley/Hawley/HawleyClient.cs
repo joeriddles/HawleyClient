@@ -10,11 +10,9 @@ namespace Hawley
 {
 	public class HawleyClient
 	{
-		//squash
-
 		private readonly string baseUrl = "https://api.hawleyusa.com/v2.0/";
 		private readonly string apiKey = "KEY";
-		private readonly HttpClient client;
+		private HttpClient Client { get; set; }
 
 		public HawleyClient()
 		{
@@ -22,15 +20,15 @@ namespace Hawley
 			{
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
 			};
-			client = new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
-			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("ApiKey", apiKey);
-			client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+			Client = new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
+			Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("ApiKey", apiKey);
+			Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		}
 
 		public List<Product> GetAllProducts()
 		{
 			List<Product> products = new List<Product>();
-			var response = client.GetAsync("Catalog/Products?pageStartIndex=1&pageSize=1000").Result;
+			var response = Client.GetAsync("Catalog/Products?pageStartIndex=1&pageSize=1000").Result;
 			if (response.IsSuccessStatusCode)
 			{
 				var responseString = response.Content.ReadAsStringAsync().Result;
@@ -41,7 +39,7 @@ namespace Hawley
 				{
 					try
 					{
-						response = client.GetAsync(nextPage).Result;
+						response = Client.GetAsync(nextPage).Result;
 						responseString = response.Content.ReadAsStringAsync().Result;
 						products.AddRange(JsonConvert.DeserializeObject<List<Product>>(responseString));
 						nextPage = GetNextPage(response);
@@ -59,7 +57,7 @@ namespace Hawley
 		public List<ProductVariant> GetAllVariants()
 		{
 			List<ProductVariant> variants = new List<ProductVariant>();
-			var response = client.GetAsync("Catalog/Products/Variants?pageStartIndex=1&pageSize=1000").Result;
+			var response = Client.GetAsync("Catalog/Products/Variants?pageStartIndex=1&pageSize=1000").Result;
 			if (response.IsSuccessStatusCode)
 			{
 				var responseString = response.Content.ReadAsStringAsync().Result;
@@ -68,13 +66,13 @@ namespace Hawley
 				KeyValuePair<string, IEnumerable<string>> xPagination = response.Headers.Single(h => h.Key.Equals("X-Pagination"));
 				Console.WriteLine(xPagination.Value.Single());
 				Dictionary<string, string> responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(xPagination.Value.Single());
-				string nextPage = responsePaginationDictionary["NextPageLink"].Split(new[] {client.BaseAddress.ToString()}, StringSplitOptions.RemoveEmptyEntries).Single();
+				string nextPage = responsePaginationDictionary["NextPageLink"].Split(new[] {Client.BaseAddress.ToString()}, StringSplitOptions.RemoveEmptyEntries).Single();
 
 				while (response.IsSuccessStatusCode && nextPage != null)
 				{
 					try
 					{
-						response = client.GetAsync(nextPage).Result;
+						response = Client.GetAsync(nextPage).Result;
 						responseString = response.Content.ReadAsStringAsync().Result;
 
 						var deserializeJson = JsonConvert.DeserializeObject<List<ProductVariant>>(responseString);
@@ -85,7 +83,7 @@ namespace Hawley
 						responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(xPagination.Value.Single());
 						nextPage = string.IsNullOrWhiteSpace(responsePaginationDictionary["NextPageLink"])
 							? null
-							: responsePaginationDictionary["NextPageLink"].Split(new[] {client.BaseAddress.ToString()}, StringSplitOptions.RemoveEmptyEntries).Single();
+							: responsePaginationDictionary["NextPageLink"].Split(new[] {Client.BaseAddress.ToString()}, StringSplitOptions.RemoveEmptyEntries).Single();
 					}
 					catch (Exception e)
 					{
@@ -105,7 +103,7 @@ namespace Hawley
 		public List<VariantInventories> GetVariantInventoriesFromVariantIds(List<string> variantIds)
 		{
 			List<VariantInventories> inventories = new List<VariantInventories>();
-			var response = client.GetAsync("Catalog/Products/Variants/Inventories?pageStartIndex=1&pageSize=1000").Result;
+			var response = Client.GetAsync("Catalog/Products/Variants/Inventories?pageStartIndex=1&pageSize=1000").Result;
 			if (response.IsSuccessStatusCode)
 			{
 				var responseString = response.Content.ReadAsStringAsync().Result;
@@ -115,7 +113,7 @@ namespace Hawley
 				{
 					try
 					{
-						response = client.GetAsync(nextPage).Result;
+						response = Client.GetAsync(nextPage).Result;
 						responseString = response.Content.ReadAsStringAsync().Result;
 						inventories.AddRange(JsonConvert.DeserializeObject<List<VariantInventories>>(responseString));
 						nextPage = GetNextPage(response);
@@ -142,7 +140,7 @@ namespace Hawley
 			Dictionary<string, string> responsePaginationDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(xPagination.Value.Single());
 			return string.IsNullOrWhiteSpace(responsePaginationDictionary["NextPageLink"])
 				? null
-				: responsePaginationDictionary["NextPageLink"].Split(new[] { client.BaseAddress.ToString() }, StringSplitOptions.RemoveEmptyEntries).Single();
+				: responsePaginationDictionary["NextPageLink"].Split(new[] { Client.BaseAddress.ToString() }, StringSplitOptions.RemoveEmptyEntries).Single();
 		}
 	}
 }
