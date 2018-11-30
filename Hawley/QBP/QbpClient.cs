@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace QBP
@@ -19,14 +21,47 @@ namespace QBP
 			Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		}
 
-		public void GetCategoriesList()
+		public List<Category> GetCategoriesList()
 		{
 			var response = Client.GetAsync("1/category/list").Result;
 			if (response.IsSuccessStatusCode)
 			{
 				string content = response.Content.ReadAsStringAsync().Result;
-				Console.WriteLine(content);
-				Response responseObject = JsonConvert.DeserializeObject<Response>(content);
+				CategoryListResponse categoryListResponse = JsonConvert.DeserializeObject<CategoryListResponse>(content);
+				return categoryListResponse.Categories;
+			}
+
+			return null;
+		}
+
+		public List<string> GetProductCodeList(bool includeDiscontinuedProducts = true)
+		{
+			string get = includeDiscontinuedProducts
+				? "1/productcode/list"
+				: "1/productcode/list?includeDiscontinued=false";
+
+			var response = Client.GetAsync(get).Result;
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var productCodeList  = JsonConvert.DeserializeObject<ProductCodeListResponse>(content);
+				return productCodeList.Codes;
+			}
+
+			return null;
+		}
+
+		public void GetProductsFromProductCodes(List<string> productCodes)
+		{
+			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/product");
+			var contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
+			requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
+			var response = Client.SendAsync(requestMessage).Result;
+
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var productsResponse = JsonConvert.DeserializeObject<ProductResponse>(content);
 			}
 		}
 	}
