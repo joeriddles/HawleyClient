@@ -51,7 +51,7 @@ namespace QBP
 			return null;
 		}
 
-		public void GetProductsFromProductCodes(List<string> productCodes)
+		public List<Product> GetProductsFromProductCodes(IEnumerable<string> productCodes)
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/product");
 			var contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
@@ -61,7 +61,26 @@ namespace QBP
 			if (response.IsSuccessStatusCode)
 			{
 				string content = response.Content.ReadAsStringAsync().Result;
-				var productsResponse = JsonConvert.DeserializeObject<ProductResponse>(content);
+				ProductResponse productsResponse = JsonConvert.DeserializeObject<ProductResponse>(content);
+				return productsResponse.Products;
+			}
+
+			return null;
+		}
+
+		public void GetImageUrlsFromProducts(List<Product> products)
+		{
+			var response = Client.GetAsync("1/imageserviceinfo").Result;
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var imageServiceResponse = JsonConvert.DeserializeObject<ImageServiceResponse>(content);
+				string url = imageServiceResponse.ImageUrl;
+				products.ForEach(
+					product => product.Images.ForEach(
+						image => product.ImageUrls.Add($"{url}/prodm/{image}")
+					)
+				);
 			}
 		}
 	}
