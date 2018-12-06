@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -54,7 +55,7 @@ namespace QBP
 		public List<Product> GetProductsFromProductCodes(IEnumerable<string> productCodes)
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/product");
-			var contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
+			string contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
 			requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
 			var response = Client.SendAsync(requestMessage).Result;
 
@@ -68,17 +69,23 @@ namespace QBP
 			return null;
 		}
 
-		public void GetInventories(IEnumerable<string> productCodes, IEnumerable<string> warehouseCodes)
+		public List<Inventory> GetInventories(IEnumerable<string> productCodes, IEnumerable<string> warehouseCodes)
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/inventory");
 
-			string temp = JsonConvert.SerializeObject(new {warehouseCodes, productCodes});
-
-			var contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
+			// string contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
+			string contentString = JsonConvert.SerializeObject(new {warehouseCodes, productCodes});
 			requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
 			var response = Client.SendAsync(requestMessage).Result;
 
-			// TODO: Finish
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var inventoryResponse = JsonConvert.DeserializeObject<InventoryResponse>(content);
+				return inventoryResponse.Inventories;
+			}
+
+			return null;
 		}
 
 		public void GetImageUrlsFromProducts(List<Product> products)
@@ -108,6 +115,13 @@ namespace QBP
 			}
 
 			return null;
+		}
+
+		public void AddInventoriesToProducts(ref List<Product> products, List<Inventory> inventories)
+		{
+			Dictionary<string, Product> productDictionary = products.ToDictionary(product => product.Code, product => product);
+			inventories.ForEach(inventory => productDictionary[inventory.Product].Inventories.Add(inventory));
+			products = productDictionary.Values.ToList();
 		}
 	}
 }

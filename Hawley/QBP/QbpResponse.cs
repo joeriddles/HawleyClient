@@ -73,6 +73,7 @@ namespace QBP
 
 	public class Product
 	{
+		// JSON Auto-created properties
 		public List<string> Barcodes { get; set; }
 		public string BasePrice { get; set; }
 		public string Blocked { get; set; }
@@ -85,7 +86,6 @@ namespace QBP
 		public string Discontinued { get; set; }
 		public string Hazmat { get; set; }
 		public List<string> Images { get; set; }
-		public List<string> ImageUrls { get; set; } = new List<string>();
 		public string C { get; set; }
 		public string IntendedAgeWarningType { get; set; }
 		public string ManufacturerPartNumber { get; set; }
@@ -105,6 +105,9 @@ namespace QBP
 		public string ThirdPartyAllowed { get; set; }
 		public string Unit { get; set; }
 		public WeightAndMeasures WeightAndMeasures { get; set; }
+
+		public List<string> ImageUrls { get; set; } = new List<string>();
+		public List<Inventory> Inventories { get; set; } = new List<Inventory>();
 
 		public static string GetProductHeaders()
 		{

@@ -18,17 +18,15 @@ namespace QBP
 			List<Product> products = new List<Product>();
 			List<Inventory> inventories = new List<Inventory>();
 			int i = 0;
-			while (i < productCodeList.Count) // Change this to a lower number for testing
+			while (i < 50) // Change this to a lower number for testing
 			{
 				Console.WriteLine(i);
 				products.AddRange(client.GetProductsFromProductCodes(productCodeList.Skip(i).Take(100)));
-				
-				// Testing GetInventories
-				client.GetInventories(warehouses.Select(warehouse => warehouse.Code), productCodeList.Skip(i).Take(100));
-
+				inventories.AddRange(client.GetInventories(productCodeList.Skip(i).Take(100), warehouses.Select(warehouse => warehouse.Code)));
 				i += 100;
 			}
 
+			client.AddInventoriesToProducts(ref products, inventories);
 			client.GetImageUrlsFromProducts(products);
 
 			File.WriteAllLines("Products.csv", new[]{Product.GetProductHeaders()});

@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hawley", "Hawley\Hawley.csproj", "{F6F53DE4-636C-4731-88FE-28C064B7F34B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QBP", "QBP\QBP.csproj", "{E1B77B47-29EA-4F4B-998C-8002682A98F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QBP", "QBP\QBP.csproj", "{E1B77B47-29EA-4F4B-998C-8002682A98F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QBP.Tests", "QBP.Tests\QBP.Tests.csproj", "{497BF802-8D26-48CB-BC0B-7E71F85FCBDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{E1B77B47-29EA-4F4B-998C-8002682A98F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1B77B47-29EA-4F4B-998C-8002682A98F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1B77B47-29EA-4F4B-998C-8002682A98F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{497BF802-8D26-48CB-BC0B-7E71F85FCBDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{497BF802-8D26-48CB-BC0B-7E71F85FCBDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{497BF802-8D26-48CB-BC0B-7E71F85FCBDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{497BF802-8D26-48CB-BC0B-7E71F85FCBDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
