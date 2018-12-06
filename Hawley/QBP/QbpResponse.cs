@@ -3,6 +3,20 @@ using Newtonsoft.Json;
 
 namespace QBP
 {
+	public class WarehouseResponse
+	{
+		public ResponseStatus ResponseStatus { get; set; }
+		public List<string> Errors { get; set; }
+		public List<Warehouse> Warehouses { get; set; }
+	}
+
+	public class InventoryResponse
+	{
+		public ResponseStatus ResponseStatus { get; set; }
+		public List<string> Errors { get; set; }
+		public List<Inventory> Inventories { get; set; }
+	}
+
 	public class ProductCodeListResponse
 	{
 		[JsonProperty("responseStatus")]
@@ -168,4 +182,18 @@ namespace QBP
 		}
 	}
 
+	public class Inventory
+	{
+		public string Product { get; set; }
+		public int Quantity { get; set; }
+		public string Warehouse { get; set; }
+	}
+
+	public class Warehouse
+	{
+		public string Code { get; set; }
+		public string Name { get; set; }
+		public string Description { get; set; }
+		public string Location { get; set; }
+	}
 }

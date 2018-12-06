@@ -68,6 +68,19 @@ namespace QBP
 			return null;
 		}
 
+		public void GetInventories(IEnumerable<string> productCodes, IEnumerable<string> warehouseCodes)
+		{
+			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/inventory");
+
+			string temp = JsonConvert.SerializeObject(new {warehouseCodes, productCodes});
+
+			var contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
+			requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
+			var response = Client.SendAsync(requestMessage).Result;
+
+			// TODO: Finish
+		}
+
 		public void GetImageUrlsFromProducts(List<Product> products)
 		{
 			var response = Client.GetAsync("1/imageserviceinfo").Result;
@@ -82,6 +95,19 @@ namespace QBP
 					)
 				);
 			}
+		}
+
+		public List<Warehouse> GetWarehouse()
+		{
+			var response = Client.GetAsync("1/warehouse").Result;
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				WarehouseResponse warehouseResponse = JsonConvert.DeserializeObject<WarehouseResponse>(content);
+				return warehouseResponse.Warehouses;
+			}
+
+			return null;
 		}
 	}
 }
