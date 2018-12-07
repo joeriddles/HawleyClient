@@ -6,44 +6,35 @@ namespace QBP
 	public class WarehouseResponse
 	{
 		public ResponseStatus ResponseStatus { get; set; }
-		public List<string> Errors { get; set; }
+		public List<Error> Errors { get; set; }
 		public List<Warehouse> Warehouses { get; set; }
 	}
 
 	public class InventoryResponse
 	{
 		public ResponseStatus ResponseStatus { get; set; }
-		public List<string> Errors { get; set; }
+		public List<Error> Errors { get; set; }
 		public List<Inventory> Inventories { get; set; }
 	}
 
 	public class ProductCodeListResponse
 	{
-		[JsonProperty("responseStatus")]
 		public ResponseStatus ResponseStatus { get; set; }
-		[JsonProperty("errors")]
-		public List<string> Errors { get; set; }
-		[JsonProperty("codes")]
+		public List<Error> Errors { get; set; }
 		public List<string> Codes { get; set; }
 	}
 
 	public class CategoryListResponse
 	{
-		[JsonProperty("responseStatus")]
 		public ResponseStatus ResponseStatus { get; set; }
-		[JsonProperty("errors")]
-		public List<string> Errors { get; set; }
-		[JsonProperty("categories")]
+		public List<Error> Errors { get; set; }
 		public List<Category> Categories { get; set; }
 	}
 
 	public class ProductResponse
 	{
-		[JsonProperty("responseStatus")]
 		public ResponseStatus ResponseStatus { get; set; }
-		[JsonProperty("errors")]
-		public List<string> Errors { get; set; }
-		[JsonProperty("products")]
+		public List<Error> Errors { get; set; }
 		public List<Product> Products { get; set; }
 	}
 
@@ -55,46 +46,52 @@ namespace QBP
 
 	public class Category
 	{
-		[JsonProperty("code")]
 		public string Code { get; set; }
-		[JsonProperty("name")]
 		public string Name { get; set; }
-		[JsonProperty("parentCode")]
 		public string ParentCode { get; set; }
-		[JsonProperty("childCodes")]
 		public List<string> ChildCodes { get; set; }
 	}
 
 	public class ResponseStatus
 	{
-		[JsonProperty("type")]
 		public string Type { get; set; }
+		public string ErrorCode { get; set; }
+		public string Meta { get; set; }
+	}
+
+	public class Error
+	{
+		public string Details { get; set; }
+		public string ErrorCode { get; set; }
+		public string ErrorMessage { get; set; }
+		public string LogKey { get; set; }
 	}
 
 	public class Product
 	{
 		// JSON Auto-created properties
 		public List<string> Barcodes { get; set; }
-		public string BasePrice { get; set; }
-		public string Blocked { get; set; }
+		public decimal BasePrice { get; set; }
+		public bool Blocked { get; set; }
 		public Brand Brand { get; set; }
 		public List<string> BulletPoints { get; set; }
 		public List<string> CategoryCodes { get; set; }
 		public string ChokingHazardWarningText { get; set; }
 		public string ChokingHazardWarningType { get; set; }
 		public string Code { get; set; }
-		public string Discontinued { get; set; }
-		public string Hazmat { get; set; }
+		public bool Discontinued { get; set; }
+		public bool Hazmat { get; set; }
 		public List<string> Images { get; set; }
 		public string C { get; set; }
+		public string IntendedAgeWarningText { get; set; }
 		public string IntendedAgeWarningType { get; set; }
 		public string ManufacturerPartNumber { get; set; }
-		public string MapPrice { get; set; }
+		public decimal MapPrice { get; set; }
 		public Model Model { get; set; }
-		public string Msrp { get; set; }
+		public decimal Msrp { get; set; }
 		public string Name { get; set; }
 		public string OrderProcess { get; set; }
-		public string Ormd { get; set; }
+		public bool Ormd { get; set; }
 		public List<ProductAttribute> ProductAttributes { get; set; }
 		public string Prop65Text { get; set; }
 		public List<string> Recommendations { get; set; }
@@ -102,27 +99,29 @@ namespace QBP
 		public List<string> SmallParts { get; set; }
 		public List<string> Substitutes { get; set; }
 		public List<string> Supersedes { get; set; }
-		public string ThirdPartyAllowed { get; set; }
+		public bool ThirdPartyAllowed { get; set; }
 		public string Unit { get; set; }
-		public WeightAndMeasures WeightAndMeasures { get; set; }
+		public WeightsAndMeasures WeightsAndMeasures { get; set; }
 
+		[JsonIgnore]
 		public List<string> ImageUrls { get; set; } = new List<string>();
+		[JsonIgnore]
 		public List<Inventory> Inventories { get; set; } = new List<Inventory>();
 
 		public static string GetProductHeaders()
 		{
 			return $"Barcodes,BasePrice,Blocked,Brand,BulletPoints,C,CategoryCodes,ChokingHazardWarningText,ChokingHazardWarningType,Code," +
-			       $"Discontinued,Hazmat,Images,IntendedAgeWarningType,ManufacturerPartNumber,MapPrice,Model,MSRP,Name,OrderProcess,ORMD," +
-			       $"ProductAttributes,Prop65Text,Recommendations,SeeAlsos,Substitutes,Supersedes,ThirdPartyAllowed,Unit,WeightAndMeasures";
+			       $"Discontinued,Hazmat,Images,IntendedAgeWarningText,IntendedAgeWarningType,ManufacturerPartNumber,MapPrice,Model,MSRP,Name,OrderProcess,ORMD," +
+			       $"ProductAttributes,Prop65Text,Recommendations,SeeAlsos,Substitutes,Supersedes,ThirdPartyAllowed,Unit,WeightsAndMeasures";
 		}
 
 		public override string ToString()
 		{
 			return $"{string.Join("|", Barcodes)},{BasePrice},{Blocked},{Brand},{string.Join("|", BulletPoints)},{C},{string.Join("|", CategoryCodes)},{ChokingHazardWarningText},{ChokingHazardWarningType}," +
-			       $"{Code},{Discontinued},{Hazmat},{string.Join("|", Images)},{IntendedAgeWarningType},{ManufacturerPartNumber},{MapPrice},{Model},{Msrp},{Name}" +
+			       $"{Code},{Discontinued},{Hazmat},{string.Join("|", Images)},{IntendedAgeWarningText},{IntendedAgeWarningType},{ManufacturerPartNumber},{MapPrice},{Model},{Msrp},{Name}" +
 			       $"{OrderProcess},{Ormd},{string.Join("|", ProductAttributes)},{Prop65Text},{string.Join("|", Recommendations)},{string.Join("|", SeeAlsos)}," +
 			       $"{string.Join("|", SmallParts)},{string.Join("|", Substitutes)},{string.Join("|", Supersedes)}," +
-			       $"{ThirdPartyAllowed},{Unit},{WeightAndMeasures}";
+			       $"{ThirdPartyAllowed},{Unit},{WeightsAndMeasures}";
 		}
 	}
 
@@ -146,7 +145,7 @@ namespace QBP
 
 		public override string ToString()
 		{
-			return $"{string.Join("|", BulletPoints)}|{Code}|{Description}|{Name}";
+			return $"<li>{string.Join("<li>", BulletPoints)}|{Code}|{Description}|{Name}";
 		}
 	}
 
@@ -161,12 +160,12 @@ namespace QBP
 		}
 	}
 
-	public class WeightAndMeasures
+	public class WeightsAndMeasures
 	{
 		public Measure Height { get; set; }
 		public Measure Length { get; set; }
-		public Measure Width { get; set; }
 		public Measure Weight { get; set; }
+		public Measure Width { get; set; }
 
 		public override string ToString()
 		{
@@ -177,7 +176,7 @@ namespace QBP
 	public class Measure
 	{
 		public string Unit { get; set; }
-		public string Value { get; set; }
+		public double Value { get; set; }
 
 		public override string ToString()
 		{
