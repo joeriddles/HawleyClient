@@ -107,6 +107,10 @@ namespace QBP
 		public List<string> ImageUrls { get; set; } = new List<string>();
 		[JsonIgnore]
 		public List<Inventory> Inventories { get; set; } = new List<Inventory>();
+		[JsonIgnore]
+		public Category PrimaryCategory { get; set; }
+		[JsonIgnore]
+		public Category SecondaryCategory { get; set; }
 
 		public static string GetProductHeaders()
 		{

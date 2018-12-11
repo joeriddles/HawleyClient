@@ -22,14 +22,14 @@ namespace QBP
 			Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		}
 
-		public List<Category> GetCategoriesList()
+		public Dictionary<string, Category> GetCategoriesList()
 		{
 			var response = Client.GetAsync("1/category/list").Result;
 			if (response.IsSuccessStatusCode)
 			{
 				string content = response.Content.ReadAsStringAsync().Result;
 				CategoryListResponse categoryListResponse = JsonConvert.DeserializeObject<CategoryListResponse>(content);
-				return categoryListResponse.Categories;
+				return categoryListResponse.Categories.ToDictionary(category => category.Code, category => category);
 			}
 
 			return null;
@@ -129,6 +129,29 @@ namespace QBP
 					Console.WriteLine(inventory.Product);
 			});
 			products = productDictionary.Values.ToList();
+		}
+
+		public void AddCategoriesToProducts(ref List<Product> products, Dictionary<string, Category> categories)
+		{
+			products.ForEach(product =>
+			{
+				switch (product.CategoryCodes.Count)
+				{
+					case 0:
+						break;
+					case 1:
+						product.PrimaryCategory = categories[product.CategoryCodes[0]];
+						break;
+					case 2:
+						product.PrimaryCategory = categories[product.CategoryCodes[0]];
+						product.SecondaryCategory = categories[product.CategoryCodes[1]];
+						break;
+					default:
+						Console.WriteLine("above 2 categories");
+						break;
+
+				}
+			});
 		}
 	}
 }

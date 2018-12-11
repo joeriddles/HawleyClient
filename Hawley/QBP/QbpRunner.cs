@@ -12,7 +12,7 @@ namespace QBP
 			QbpClient client = new QbpClient();
 			List<Warehouse> warehouses = client.GetWarehouse();
 
-			List<Category> categories = client.GetCategoriesList();
+			Dictionary<string, Category> categories = client.GetCategoriesList();
 			List<string> productCodeList = client.GetProductCodeList(false);
 
 			List<Product> products = new List<Product>();
@@ -32,6 +32,7 @@ namespace QBP
 			var codes = products.Select(product => product.Code).OrderBy(code => code).ToList();
 
 			client.AddInventoriesToProducts(ref products, inventories);
+			client.AddCategoriesToProducts(ref products, categories);
 			client.GetImageUrlsFromProducts(products);
 
 			File.WriteAllLines("Products.csv", new[]{Product.GetProductHeaders()});
