@@ -52,6 +52,22 @@ namespace QBP
 			return null;
 		}
 
+		public List<string> GetProductChangeList(DateTime start, DateTime end)
+		{
+			if (start > end)
+				throw new ArgumentException("`start` is after `end`.");
+
+			var response = Client.GetAsync($"1/productchange/list?startDate={start:yyyy-MM-dd}&endDate={end:yyyy-MM-dd}").Result;
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var productCodeList = JsonConvert.DeserializeObject<ProductCodeListResponse>(content);
+				return productCodeList.Codes;
+			}
+
+			return null;
+		}
+
 		public List<Product> GetProductsFromProductCodes(IEnumerable<string> productCodes)
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/product");
@@ -118,7 +134,7 @@ namespace QBP
 			return null;
 		}
 
-		public void AddInventoriesToProducts(ref List<Product> products, List<Inventory> inventories)
+		public void AddInventoriesToProducts(List<Product> products, List<Inventory> inventories)
 		{
 			Dictionary<string, Product> productDictionary = products.ToDictionary(product => product.Code, product => product);
 			inventories.ForEach(inventory =>
@@ -131,7 +147,7 @@ namespace QBP
 			products = productDictionary.Values.ToList();
 		}
 
-		public void AddCategoriesToProducts(ref List<Product> products, Dictionary<string, Category> categories)
+		public void AddCategoriesToProducts(List<Product> products, Dictionary<string, Category> categories)
 		{
 			products.ForEach(product =>
 			{
@@ -149,7 +165,6 @@ namespace QBP
 					default:
 						Console.WriteLine("above 2 categories");
 						break;
-
 				}
 			});
 		}

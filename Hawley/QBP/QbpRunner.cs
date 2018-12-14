@@ -10,29 +10,39 @@ namespace QBP
 		static void Main()
 		{
 			QbpClient client = new QbpClient();
-			List<Warehouse> warehouses = client.GetWarehouse();
-
-			Dictionary<string, Category> categories = client.GetCategoriesList();
-			List<string> productCodeList = client.GetProductCodeList(false);
 
 			List<Product> products = new List<Product>();
 			List<Inventory> inventories = new List<Inventory>();
-			int i = 0;
-			while (i < productCodeList.Count) // Change this to a lower number for testing
+			List<Warehouse> warehouses = client.GetWarehouse();
+			Dictionary<string, Category> categories = client.GetCategoriesList();
+
+			List<string> productCodeList;
+			if (File.Exists("Products.csv"))
 			{
-				Console.WriteLine(i);
+				List<string> productFileLines = File.ReadAllLines("Products.csv").ToList();
+				productFileLines.RemoveAt(0); // Removes header line
 
-				var currentProducts = productCodeList.Skip(i).Take(100).ToList();
+				var now = DateTime.Now;
+				productCodeList = client.GetProductChangeList(now, now);
+			}
+			else
+			{
+				productCodeList = client.GetProductCodeList(false);
+				int i = 0;
+				while (i < productCodeList.Count) // Change this to a lower number for testing
+				{
+					Console.WriteLine(i);
 
-				products.AddRange(client.GetProductsFromProductCodes(currentProducts));
-				inventories.AddRange(client.GetInventories(currentProducts, warehouses.Select(warehouse => warehouse.Code)));
-				i += 100;
+					var currentProducts = productCodeList.Skip(i).Take(100).ToList();
+
+					products.AddRange(client.GetProductsFromProductCodes(currentProducts));
+					inventories.AddRange(client.GetInventories(currentProducts, warehouses.Select(warehouse => warehouse.Code)));
+					i += 100;
+				}
 			}
 
-			var codes = products.Select(product => product.Code).OrderBy(code => code).ToList();
-
-			client.AddInventoriesToProducts(ref products, inventories);
-			client.AddCategoriesToProducts(ref products, categories);
+			client.AddInventoriesToProducts(products, inventories);
+			client.AddCategoriesToProducts(products, categories);
 			client.GetImageUrlsFromProducts(products);
 
 			File.WriteAllLines("Products.csv", new[]{Product.GetProductHeaders()});
