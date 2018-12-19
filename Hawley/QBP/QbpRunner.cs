@@ -33,21 +33,18 @@ namespace QBP
 				{
 					Console.WriteLine(i);
 
-					var currentProducts = productCodeList.Skip(i).Take(100).ToList();
-					var updatedProducts = client.GetProductsFromProductCodes(currentProducts);
+					var currentProductCodes = productCodeList.Skip(i).Take(100).ToList();
+					var updatedProducts = client.GetProductsFromProductCodes(currentProductCodes);
 
 					foreach (var updatedProduct in updatedProducts.Values)
 					{
 						if (products.ContainsKey(updatedProduct.Code))
 							products[updatedProduct.Code] = updatedProduct;
 					}
-
-					inventories.AddRange(client.GetInventories(
-						updatedProducts.Values.Select(product => product.Code),
-						warehouses.Select(warehouse => warehouse.Code)));
-
 					i += 100;
 				}
+
+				i = 0;
 			}
 			else
 			{
@@ -63,9 +60,17 @@ namespace QBP
 					foreach (var product in currentProducts.Values)
 						products.Add(product.Code, product);
 
-					inventories.AddRange(client.GetInventories(currentProductCodes, warehouses.Select(warehouse => warehouse.Code)));
 					i += 100;
 				}
+			}
+
+			List<string> codes = products.Values.Select(product => product.Code).ToList();
+			int j = 0;
+			while (j < codes.Count)
+			{
+				var currentProductCodes = codes.Skip(j).Take(100).ToList();
+				inventories.AddRange(client.GetInventories(currentProductCodes, warehouses.Select(warehouse => warehouse.Code)));
+				j += 100;
 			}
 
 			client.AddInventoriesToProducts(products, inventories);
