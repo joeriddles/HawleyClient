@@ -27,7 +27,9 @@ namespace QBP
 				products = productsList.ToDictionary(product => product.Code, product => product);
 
 				var now = DateTime.Now;
-				productCodeList = client.GetProductChangeList(now, now);
+				var twoDaysAgo = now.AddDays(-2);
+
+				productCodeList = client.GetProductChangeList(twoDaysAgo, now);
 				int i = 0;
 				while (i < productCodeList.Count) // Change this to a lower number for testing
 				{
