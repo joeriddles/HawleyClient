@@ -17,6 +17,13 @@ namespace QBP
 		public List<Inventory> Inventories { get; set; }
 	}
 
+	public class InventoryChangeResponse
+	{
+		public ResponseStatus ResponseStatus { get; set; }
+		public List<Error> Errors { get; set; }
+		public List<InventoryChange> InventoryChanges { get; set; }
+	}
+
 	public class ProductCodeListResponse
 	{
 		public ResponseStatus ResponseStatus { get; set; }
@@ -111,21 +118,23 @@ namespace QBP
 		public Category PrimaryCategory { get; set; }
 		[JsonIgnore]
 		public Category SecondaryCategory { get; set; }
+		[JsonIgnore]
+		public List<Category> OtherCategories { get; set; } = new List<Category>();
 
 		public static string GetProductHeaders()
 		{
-			return $"Barcodes,BasePrice,Blocked,Brand,BulletPoints,C,CategoryCodes,ChokingHazardWarningText,ChokingHazardWarningType,Code," +
-			       $"Discontinued,Hazmat,Images,IntendedAgeWarningText,IntendedAgeWarningType,ManufacturerPartNumber,MapPrice,Model,MSRP,Name,OrderProcess,ORMD," +
-			       $"ProductAttributes,Prop65Text,Recommendations,SeeAlsos,Substitutes,Supersedes,ThirdPartyAllowed,Unit,WeightsAndMeasures";
+			return $"Barcodes\tBasePrice\tBlocked\tBrand\tBulletPoints\tC\tCategoryCodes\tChokingHazardWarningText\tChokingHazardWarningType\tCode\t" +
+			       $"Discontinued\tHazmat\tImages\tIntendedAgeWarningText\tIntendedAgeWarningType\tManufacturerPartNumber\tMapPrice\tModel\tMSRP\tName\tOrderProcess\tORMD\t" +
+			       $"ProductAttributes\tProp65Text\tRecommendations\tSeeAlsos\tSubstitutes\tSupersedes\tThirdPartyAllowed\tUnit\tWeightsAndMeasures";
 		}
 
 		public override string ToString()
 		{
-			return $"{string.Join("|", Barcodes)},{BasePrice},{Blocked},{Brand},{string.Join("|", BulletPoints)},{C},{string.Join("|", CategoryCodes)},{ChokingHazardWarningText},{ChokingHazardWarningType}," +
-			       $"{Code},{Discontinued},{Hazmat},{string.Join("|", Images)},{IntendedAgeWarningText},{IntendedAgeWarningType},{ManufacturerPartNumber},{MapPrice},{Model},{Msrp},{Name}" +
-			       $"{OrderProcess},{Ormd},{string.Join("|", ProductAttributes)},{Prop65Text},{string.Join("|", Recommendations)},{string.Join("|", SeeAlsos)}," +
-			       $"{string.Join("|", SmallParts)},{string.Join("|", Substitutes)},{string.Join("|", Supersedes)}," +
-			       $"{ThirdPartyAllowed},{Unit},{WeightsAndMeasures}";
+			return $"{string.Join("|", Barcodes)}\t{BasePrice}\t{Blocked}\t{Brand}\t{string.Join("|", BulletPoints)}\t{C}\t{string.Join("|", CategoryCodes)}\t{ChokingHazardWarningText}\t{ChokingHazardWarningType}\t" +
+			       $"{Code}\t{Discontinued}\t{Hazmat}\t{string.Join("|", Images)}\t{IntendedAgeWarningText}\t{IntendedAgeWarningType}\t{ManufacturerPartNumber}\t{MapPrice}\t{Model}\t{Msrp}\t{Name}" +
+			       $"{OrderProcess}\t{Ormd}\t{string.Join("|", ProductAttributes)}\t{Prop65Text}\t{string.Join("|", Recommendations)}\t{string.Join("|", SeeAlsos)}\t" +
+			       $"{string.Join("|", SmallParts)}\t{string.Join("|", Substitutes)}\t{string.Join("|", Supersedes)}\t" +
+			       $"{ThirdPartyAllowed}\t{Unit}\t{WeightsAndMeasures}";
 		}
 	}
 
@@ -191,6 +200,13 @@ namespace QBP
 	public class Inventory
 	{
 		public string Product { get; set; }
+		public int Quantity { get; set; }
+		public string Warehouse { get; set; }
+	}
+
+	public class InventoryChange
+	{
+		public string Code { get; set; }
 		public int Quantity { get; set; }
 		public string Warehouse { get; set; }
 	}

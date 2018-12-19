@@ -68,7 +68,7 @@ namespace QBP
 			return null;
 		}
 
-		public List<Product> GetProductsFromProductCodes(IEnumerable<string> productCodes)
+		public Dictionary<string, Product> GetProductsFromProductCodes(IEnumerable<string> productCodes)
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/product");
 			// string contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
@@ -80,7 +80,7 @@ namespace QBP
 			{
 				string content = response.Content.ReadAsStringAsync().Result;
 				ProductResponse productsResponse = JsonConvert.DeserializeObject<ProductResponse>(content);
-				return productsResponse.Products;
+				return productsResponse.Products.ToDictionary(product => product.Code, product => product);
 			}
 
 			return null;
@@ -90,7 +90,6 @@ namespace QBP
 		{
 			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/inventory");
 
-			// string contentString = "{" + $"\"codes\":[\"{string.Join("\",\"", productCodes)}\"]" + "}";
 			string contentString = JsonConvert.SerializeObject(new {warehouseCodes, productCodes});
 			requestMessage.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
 			var response = Client.SendAsync(requestMessage).Result;
@@ -105,7 +104,22 @@ namespace QBP
 			return null;
 		}
 
-		public void GetImageUrlsFromProducts(List<Product> products)
+		public List<InventoryChange> GetInventoryChanges()
+		{
+			HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{Client.BaseAddress}/1/inventorychange?endDate={DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+			var response = Client.SendAsync(requestMessage).Result;
+
+			if (response.IsSuccessStatusCode)
+			{
+				string content = response.Content.ReadAsStringAsync().Result;
+				var inventoryResponse = JsonConvert.DeserializeObject<InventoryChangeResponse>(content);
+				return inventoryResponse.InventoryChanges;
+			}
+
+			return null;
+		}
+
+		public void GetImageUrlsFromProducts(Dictionary<string, Product> products)
 		{
 			var response = Client.GetAsync("1/imageserviceinfo").Result;
 			if (response.IsSuccessStatusCode)
@@ -113,11 +127,13 @@ namespace QBP
 				string content = response.Content.ReadAsStringAsync().Result;
 				var imageServiceResponse = JsonConvert.DeserializeObject<ImageServiceResponse>(content);
 				string url = imageServiceResponse.ImageUrl;
-				products.ForEach(
-					product => product.Images.ForEach(
+
+				foreach (var product in products.Values)
+				{
+					product.Images.ForEach(
 						image => product.ImageUrls.Add($"{url}/prodm/{image}")
-					)
-				);
+					);
+				}
 			}
 		}
 
@@ -134,39 +150,49 @@ namespace QBP
 			return null;
 		}
 
-		public void AddInventoriesToProducts(List<Product> products, List<Inventory> inventories)
+		public void AddInventoriesToProducts(Dictionary<string, Product> products, List<Inventory> inventories)
 		{
-			Dictionary<string, Product> productDictionary = products.ToDictionary(product => product.Code, product => product);
 			inventories.ForEach(inventory =>
 			{
-				if (productDictionary.ContainsKey(inventory.Product))
-					productDictionary[inventory.Product].Inventories.Add(inventory);
+				if (products.ContainsKey(inventory.Product))
+					products[inventory.Product].Inventories.Add(inventory);
 				else // This should never be hit
 					Console.WriteLine(inventory.Product);
 			});
-			products = productDictionary.Values.ToList();
 		}
 
-		public void AddCategoriesToProducts(List<Product> products, Dictionary<string, Category> categories)
+		public void AddCategoriesToProducts(Dictionary<string, Product> products, Dictionary<string, Category> categories)
 		{
-			products.ForEach(product =>
+			foreach (var product in products.Values)
 			{
 				switch (product.CategoryCodes.Count)
 				{
 					case 0:
 						break;
 					case 1:
-						product.PrimaryCategory = categories[product.CategoryCodes[0]];
+						if (categories.ContainsKey(product.CategoryCodes[0]))
+							product.PrimaryCategory = categories[product.CategoryCodes[0]];
 						break;
 					case 2:
-						product.PrimaryCategory = categories[product.CategoryCodes[0]];
-						product.SecondaryCategory = categories[product.CategoryCodes[1]];
+						if (categories.ContainsKey(product.CategoryCodes[0]))
+							product.PrimaryCategory = categories[product.CategoryCodes[0]];
+						if (categories.ContainsKey(product.CategoryCodes[1]))
+							product.SecondaryCategory = categories[product.CategoryCodes[1]];
 						break;
 					default:
 						Console.WriteLine("above 2 categories");
+						if (categories.ContainsKey(product.CategoryCodes[0]))
+							product.PrimaryCategory = categories[product.CategoryCodes[0]];
+						if (categories.ContainsKey(product.CategoryCodes[1]))
+							product.SecondaryCategory = categories[product.CategoryCodes[1]];
+						foreach (var categoryCode in product.CategoryCodes.Skip(2))
+						{
+						if (categories.ContainsKey(categoryCode))
+								product.OtherCategories.Add(categories[categoryCode]);
+						}
 						break;
 				}
-			});
+			}
 		}
 	}
 }

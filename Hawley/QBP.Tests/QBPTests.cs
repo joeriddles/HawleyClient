@@ -16,7 +16,7 @@ namespace QBP.Tests
 			List<Warehouse> warehouses = client.GetWarehouse();
 			List<Inventory> inventories = client.GetInventories(productCodeList.Take(20),
 				warehouses.Select(warehouse => warehouse.Code));
-			client.AddInventoriesToProducts(ref products, inventories);
+			client.AddInventoriesToProducts(products, inventories);
 			
 			Assert.AreEqual(inventories.Count, products.SelectMany(product => product.Inventories.Select(inventory => inventory)).Count());
 		}
