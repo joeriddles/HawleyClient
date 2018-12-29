@@ -31,6 +31,7 @@ namespace QBP
 
 				productCodeList = client.GetProductChangeList(twoDaysAgo, now);
 				int i = 0;
+				Console.WriteLine("Products counter:");
 				while (i < productCodeList.Count) // Change this to a lower number for testing
 				{
 					Console.WriteLine(i);
@@ -52,7 +53,8 @@ namespace QBP
 			{
 				productCodeList = client.GetProductCodeList(false);
 				int i = 0;
-				while (i < 500) // Change this to a lower number for testing
+				Console.WriteLine("Updated products counter:");
+				while (i < productCodeList.Count) // Change this to a lower number for testing
 				{
 					Console.WriteLine(i);
 
@@ -68,8 +70,11 @@ namespace QBP
 
 			List<string> codes = products.Values.Select(product => product.Code).ToList();
 			int j = 0;
+			Console.WriteLine("Inventory counter");
 			while (j < codes.Count)
 			{
+				Console.WriteLine(j);
+
 				var currentProductCodes = codes.Skip(j).Take(100).ToList();
 				inventories.AddRange(client.GetInventories(currentProductCodes, warehouses.Select(warehouse => warehouse.Code)));
 				j += 100;
