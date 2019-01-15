@@ -12,7 +12,7 @@ namespace QBP
 	{
 		private readonly string baseUrl = "https://clsdev.qbp.com/api3/";
 		private readonly string apiKey = "APIKEY";
-		private HttpClient Client { get; }
+		public HttpClient Client { get; }
 
 		public QbpClient()
 		{
@@ -22,7 +22,7 @@ namespace QBP
 			Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		}
 
-		public Dictionary<string, Category> GetCategoriesList()
+		public Dictionary<string, Category> GetCategories()
 		{
 			var response = Client.GetAsync("1/category/list").Result;
 			if (response.IsSuccessStatusCode)
@@ -35,7 +35,7 @@ namespace QBP
 			return null;
 		}
 
-		public List<string> GetProductCodeList(bool includeDiscontinuedProducts = true)
+		public List<string> GetProductCodes(bool includeDiscontinuedProducts = true)
 		{
 			string get = includeDiscontinuedProducts
 				? "1/productcode/list"
@@ -52,7 +52,7 @@ namespace QBP
 			return null;
 		}
 
-		public List<string> GetProductChangeList(DateTime start, DateTime end)
+		public List<string> GetProductChanges(DateTime start, DateTime end)
 		{
 			if (start > end)
 				throw new ArgumentException("`start` is after `end`.");
@@ -137,7 +137,7 @@ namespace QBP
 			}
 		}
 
-		public List<Warehouse> GetWarehouse()
+		public List<Warehouse> GetWarehouses()
 		{
 			var response = Client.GetAsync("1/warehouse").Result;
 			if (response.IsSuccessStatusCode)

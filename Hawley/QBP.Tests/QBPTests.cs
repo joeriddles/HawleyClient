@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace QBP.Tests
@@ -7,18 +8,26 @@ namespace QBP.Tests
 	[TestClass]
 	public class QbpTests
 	{
+		private readonly string apiKey = "APIKEY";
+
 		[TestMethod]
-		public void AddInventoriesToProducts_EqualsInventories()
+		public void QbpClient_CreateClient_Success()
 		{
 			QbpClient client = new QbpClient();
-			List<string> productCodeList = client.GetProductCodeList(false);
-			List<Product> products = client.GetProductsFromProductCodes(productCodeList.Take(20));
-			List<Warehouse> warehouses = client.GetWarehouse();
-			List<Inventory> inventories = client.GetInventories(productCodeList.Take(20),
-				warehouses.Select(warehouse => warehouse.Code));
-			client.AddInventoriesToProducts(products, inventories);
-			
-			Assert.AreEqual(inventories.Count, products.SelectMany(product => product.Inventories.Select(inventory => inventory)).Count());
+			HttpRequestHeaders clientHeaders = client.Client.DefaultRequestHeaders;
+			string clientApiKey =
+				clientHeaders.Single(header => header.Key.Equals("X-QBPAPI-KEY")).Value.Single();
+			Assert.AreEqual(apiKey, clientApiKey);
+		}
+
+		[TestMethod]
+		public void QbpClient_GetCategoriesList_Success()
+		{
+			QbpClient client = new QbpClient();
+			Dictionary<string, Category> categories = client.GetCategories();
+
+			Assert.IsTrue(categories.Count > 0);
+			Assert.IsInstanceOfType(categories.Values.ToList()[0], typeof(QBP.Category));
 		}
 	}
 }

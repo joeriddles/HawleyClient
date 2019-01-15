@@ -12,7 +12,7 @@ namespace Hawley
 	{
 		private readonly string baseUrl = "https://api.hawleyusa.com/v2.0/";
 		private readonly string apiKey = "KEY";
-		private HttpClient Client { get; set; }
+		private HttpClient Client { get; }
 
 		public HawleyClient()
 		{

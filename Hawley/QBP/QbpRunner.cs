@@ -8,7 +8,7 @@ namespace QBP
 {
 	public class QbpRunner
 	{
-		static void Main()
+		private static void Main()
 		{
 			QbpClient client = new QbpClient();
 
@@ -16,8 +16,8 @@ namespace QBP
 
 			Dictionary<string, Product> products = new Dictionary<string, Product>();
 			List<Inventory> inventories = new List<Inventory>();
-			List<Warehouse> warehouses = client.GetWarehouse();
-			Dictionary<string, Category> categories = client.GetCategoriesList();
+			List<Warehouse> warehouses = client.GetWarehouses();
+			Dictionary<string, Category> categories = client.GetCategories();
 
 			List<string> productCodeList;
 			if (File.Exists("Products.json"))
@@ -29,7 +29,7 @@ namespace QBP
 				var now = DateTime.Now;
 				var twoDaysAgo = now.AddDays(-2);
 
-				productCodeList = client.GetProductChangeList(twoDaysAgo, now);
+				productCodeList = client.GetProductChanges(twoDaysAgo, now);
 				int i = 0;
 				Console.WriteLine("Products counter:");
 				while (i < productCodeList.Count) // Change this to a lower number for testing
@@ -51,7 +51,7 @@ namespace QBP
 			}
 			else
 			{
-				productCodeList = client.GetProductCodeList(false);
+				productCodeList = client.GetProductCodes(false);
 				int i = 0;
 				Console.WriteLine("Updated products counter:");
 				while (i < productCodeList.Count) // Change this to a lower number for testing
